@@ -3,6 +3,8 @@ import { connectToDatabase } from './db/dbConnection';
 import dotenv from 'dotenv';
 import countryRouter from './router/countryRouter';
 import cityRouter from './router/cityRouter';
+import guideRouter from './router/guideRouter';
+import guideLanguageRouter from './router/guideLanguageRouter';
 
 dotenv.config();
 
@@ -17,6 +19,8 @@ connectToDatabase();
 // Use the routes
 app.use('/api', countryRouter);
 app.use('/api', cityRouter);
+app.use('/api', guideRouter);
+app.use('/api', guideLanguageRouter);
 
 // Define a simple route
 app.get('/', (req, res) => {
