@@ -33,13 +33,19 @@ export const getCountryById = (req: Request, res: Response) => {
 
 export const createCountry = (req: Request, res: Response) => {
     const { UlkeAdi, UlkeKodu, Aciklama } = req.body;
-    const query = `INSERT INTO TurRehber.Ulke (UlkeAdi, UlkeKodu, Aciklama) VALUES ('${UlkeAdi}', '${UlkeKodu}', '${Aciklama}')`;
+    const query = `INSERT INTO TurRehber.Ulke (UlkeAdi, UlkeKodu, Aciklama) VALUES ('${UlkeAdi}', '${UlkeKodu}', '${Aciklama}'); SELECT SCOPE_IDENTITY() AS UlkeID;`;
     sql.query(connectionString, query, (err: any, result: any) => {
         if (err) {
             console.error('Error during database query:', err);
             res.status(500).send('Database error');
         } else {
-            res.status(201).send('Country successfully added');
+            const newCountry = {
+                UlkeID: result[0].UlkeID,
+                UlkeAdi,
+                UlkeKodu,
+                Aciklama
+            };
+            res.status(201).json(newCountry);
         }
     });
 };
@@ -60,12 +66,14 @@ export const updateCountry = (req: Request, res: Response) => {
 
 export const deleteCountry = (req: Request, res: Response) => {
     const countryId = req.params.id;
+    console.log(`Deleting country with ID: ${countryId}`); // Debugging line
     const query = `DELETE FROM TurRehber.Ulke WHERE UlkeID = ${countryId}`;
     sql.query(connectionString, query, (err: any, result: any) => {
         if (err) {
             console.error('Error during database query:', err);
             res.status(500).send('Database error');
         } else {
+            console.log('Query Result:', result); // Debugging line
             res.send('Country successfully deleted');
         }
     });

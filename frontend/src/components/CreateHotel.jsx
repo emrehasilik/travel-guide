@@ -1,76 +1,81 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import useHotelStore from '../store/hotelStore';
+import useCityStore from '../store/cityStore';
+import { useNavigate } from 'react-router-dom';
 
-const CreateHotel = ({ onClose, onSave }) => {
-  const [otelAdi, setOtelAdi] = useState('');
-  const [sehirID, setSehirID] = useState('');
-  const [yildizSayisi, setYildizSayisi] = useState('');
-  const [aciklama, setAciklama] = useState('');
+const CreateHotel = ({ onClose }) => {
+  const [hotelName, setHotelName] = useState('');
+  const [cityId, setCityId] = useState('');
+  const [starRating, setStarRating] = useState('');
+  const [description, setDescription] = useState('');
+  const { addHotel } = useHotelStore();
+  const { cities, fetchCities } = useCityStore();
+  const navigate = useNavigate();
 
-  const handleSave = () => {
-    if (!otelAdi.trim() || !sehirID.trim() || !yildizSayisi.trim()) return;
+  useEffect(() => {
+    fetchCities();
+  }, [fetchCities]);
 
-    const newHotel = {
-      OtelAdi: otelAdi,
-      SehirID: parseInt(sehirID, 10),
-      YildizSayisi: parseInt(yildizSayisi, 10),
-      Aciklama: aciklama,
-    };
-    onSave(newHotel);
-    onClose();
+  const handleSave = async () => {
+    if (hotelName.trim() === '' || cityId.trim() === '') return;
+    await addHotel(hotelName, cityId, starRating, description);
+    onClose(); // Popup'ı kapat
+    navigate('/hotelList'); // Otel listesine yönlendir
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded shadow-lg w-96">
         <h3 className="text-lg font-bold mb-4">Yeni Otel Ekle</h3>
-
         {/* Otel Adı */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Otel Adı</label>
           <input
             type="text"
-            value={otelAdi}
-            onChange={(e) => setOtelAdi(e.target.value)}
+            value={hotelName}
+            onChange={(e) => setHotelName(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             placeholder="Otel adını giriniz"
           />
         </div>
-
-        {/* Şehir ID */}
+        {/* Şehir Seçimi */}
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Şehir ID</label>
-          <input
-            type="number"
-            value={sehirID}
-            onChange={(e) => setSehirID(e.target.value)}
+          <label className="block text-sm font-medium mb-1">Şehir</label>
+          <select
+            value={cityId}
+            onChange={(e) => setCityId(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Şehir ID giriniz"
-          />
+          >
+            <option value="">Şehir seçiniz</option>
+            {cities.map((city) => (
+              <option key={city.SehirID} value={city.SehirID}>
+                {city.SehirAdi}
+              </option>
+            ))}
+          </select>
         </div>
-
         {/* Yıldız Sayısı */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Yıldız Sayısı</label>
           <input
             type="number"
-            value={yildizSayisi}
-            onChange={(e) => setYildizSayisi(e.target.value)}
+            value={starRating}
+            onChange={(e) => setStarRating(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             placeholder="Yıldız sayısını giriniz"
           />
         </div>
-
         {/* Açıklama */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Açıklama</label>
-          <textarea
-            value={aciklama}
-            onChange={(e) => setAciklama(e.target.value)}
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             placeholder="Açıklama giriniz"
           />
         </div>
-
         {/* Butonlar */}
         <div className="flex justify-end space-x-2">
           <button

@@ -1,78 +1,72 @@
 import React, { useState } from 'react';
+import useGuideStore from '../store/guideStore';
+import { useNavigate } from 'react-router-dom';
 
-const CreateRehber = ({ onClose, onSave }) => {
-  const [ad, setAd] = useState('');
-  const [soyad, setSoyad] = useState('');
-  const [telefon, setTelefon] = useState('');
+const CreateGuide = ({ onClose }) => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [cinsiyet, setCinsiyet] = useState('');
-  const [deneyimYili, setDeneyimYili] = useState('');
-  const [diller, setDiller] = useState([]);
+  const [gender, setGender] = useState('');
+  const [experience, setExperience] = useState('');
+  const [languages, setLanguages] = useState(['']);
+  const { addGuide } = useGuideStore();
+  const navigate = useNavigate();
 
-  const availableLanguages = ['Türkçe', 'İngilizce', 'Almanca', 'Fransızca', 'İspanyolca'];
-
-  const handleSave = () => {
-    if (!ad.trim() || !soyad.trim() || !telefon.trim() || !email.trim()) return;
-
-    const newRehber = {
-      Ad: ad,
-      Soyad: soyad,
-      Telefon: telefon,
-      Email: email,
-      Cinsiyet: cinsiyet,
-      DeneyimYili: parseInt(deneyimYili, 10),
-      Diller: diller,
-    };
-    onSave(newRehber);
-    onClose();
+  const handleAddLanguage = () => {
+    setLanguages([...languages, '']);
   };
 
-  const handleLanguageChange = (event) => {
-    const selectedOptions = Array.from(event.target.selectedOptions);
-    setDiller(selectedOptions.map((option) => option.value));
+  const handleLanguageChange = (index, value) => {
+    const newLanguages = [...languages];
+    newLanguages[index] = value;
+    setLanguages(newLanguages);
+  };
+
+  const handleSave = async () => {
+    if (firstName.trim() === '' || lastName.trim() === '') return;
+    await addGuide(firstName, lastName, phone, email, gender, experience, languages);
+    onClose(); // Popup'ı kapat
+    navigate('/rehberList'); // Rehber listesine yönlendir
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded shadow-lg w-96">
         <h3 className="text-lg font-bold mb-4">Yeni Rehber Ekle</h3>
-
         {/* Ad */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Ad</label>
           <input
             type="text"
-            value={ad}
-            onChange={(e) => setAd(e.target.value)}
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Ad giriniz"
+            placeholder="Adını giriniz"
           />
         </div>
-
         {/* Soyad */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Soyad</label>
           <input
             type="text"
-            value={soyad}
-            onChange={(e) => setSoyad(e.target.value)}
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Soyad giriniz"
+            placeholder="Soyadını giriniz"
           />
         </div>
-
         {/* Telefon */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Telefon</label>
           <input
             type="text"
-            value={telefon}
-            onChange={(e) => setTelefon(e.target.value)}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Telefon giriniz"
+            placeholder="Telefon numarasını giriniz"
           />
         </div>
-
         {/* Email */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Email</label>
@@ -81,51 +75,51 @@ const CreateRehber = ({ onClose, onSave }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Email giriniz"
+            placeholder="Email adresini giriniz"
           />
         </div>
-
         {/* Cinsiyet */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Cinsiyet</label>
           <input
             type="text"
-            value={cinsiyet}
-            onChange={(e) => setCinsiyet(e.target.value)}
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Cinsiyet giriniz (Erkek/Kadın)"
+            placeholder="Cinsiyetini giriniz"
           />
         </div>
-
         {/* Deneyim Yılı */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Deneyim Yılı</label>
           <input
             type="number"
-            value={deneyimYili}
-            onChange={(e) => setDeneyimYili(e.target.value)}
+            value={experience}
+            onChange={(e) => setExperience(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Deneyim yılı giriniz"
+            placeholder="Deneyim yılını giriniz"
           />
         </div>
-
         {/* Diller */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Diller</label>
-          <select
-            multiple
-            value={diller}
-            onChange={handleLanguageChange}
-            className="w-full px-3 py-2 border rounded"
+          {languages.map((language, index) => (
+            <input
+              key={index}
+              type="text"
+              value={language}
+              onChange={(e) => handleLanguageChange(index, e.target.value)}
+              className="w-full px-3 py-2 border rounded mb-2"
+              placeholder="Dil giriniz"
+            />
+          ))}
+          <button
+            onClick={handleAddLanguage}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
           >
-            {availableLanguages.map((language, index) => (
-              <option key={index} value={language}>
-                {language}
-              </option>
-            ))}
-          </select>
+            Dil Ekle
+          </button>
         </div>
-
         {/* Butonlar */}
         <div className="flex justify-end space-x-2">
           <button
@@ -146,4 +140,4 @@ const CreateRehber = ({ onClose, onSave }) => {
   );
 };
 
-export default CreateRehber;
+export default CreateGuide;

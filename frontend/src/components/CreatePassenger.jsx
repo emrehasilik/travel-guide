@@ -1,61 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import usePassengerStore from '../store/passengerStore';
+import useCountryStore from '../store/countryStore';
+import CreateAddress from './CreateAddress';
+import { useNavigate } from 'react-router-dom';
 
-const CreatePassenger = ({ onClose, onSave }) => {
-  const [ad, setAd] = useState('');
-  const [soyad, setSoyad] = useState('');
+const CreatePassenger = ({ onClose }) => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [telefon, setTelefon] = useState('');
-  const [cinsiyet, setCinsiyet] = useState('');
-  const [dogumTarihi, setDogumTarihi] = useState('');
-  const [pasaportNo, setPasaportNo] = useState('');
-  const [ulkeID, setUlkeID] = useState('');
+  const [phone, setPhone] = useState('');
+  const [gender, setGender] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [passportNo, setPassportNo] = useState('');
+  const [countryId, setCountryId] = useState('');
+  const [showAddressPopup, setShowAddressPopup] = useState(false);
+  const [passengerId, setPassengerId] = useState(null);
+  const { addPassenger } = usePassengerStore();
+  const { countries, fetchCountries } = useCountryStore();
+  const navigate = useNavigate();
 
-  const handleSave = () => {
-    if (!ad.trim() || !soyad.trim() || !email.trim()) return;
+  useEffect(() => {
+    fetchCountries();
+  }, [fetchCountries]);
 
-    const newPassenger = {
-      Ad: ad,
-      Soyad: soyad,
-      Email: email,
-      Telefon: telefon,
-      Cinsiyet: cinsiyet,
-      DogumTarihi: dogumTarihi,
-      PasaportNo: pasaportNo,
-      UlkeID: ulkeID ? parseInt(ulkeID, 10) : null,
-    };
-    onSave(newPassenger);
-    onClose();
+  const handleSave = async () => {
+    if (firstName.trim() === '' || lastName.trim() === '') return;
+    const newPassenger = await addPassenger(firstName, lastName, email, phone, gender, birthDate, passportNo, countryId);
+    setPassengerId(newPassenger.YolcuID);
+    onClose(); // Popup'ı kapat
+    navigate('/passengerList'); // Yolcu listesine yönlendir
+  };
+
+  const handleAddAddress = () => {
+    setShowAddressPopup(true);
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded shadow-lg w-96">
         <h3 className="text-lg font-bold mb-4">Yeni Yolcu Ekle</h3>
-
         {/* Ad */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Ad</label>
           <input
             type="text"
-            value={ad}
-            onChange={(e) => setAd(e.target.value)}
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Ad giriniz"
+            placeholder="Adını giriniz"
           />
         </div>
-
         {/* Soyad */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Soyad</label>
           <input
             type="text"
-            value={soyad}
-            onChange={(e) => setSoyad(e.target.value)}
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Soyad giriniz"
+            placeholder="Soyadını giriniz"
           />
         </div>
-
         {/* Email */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Email</label>
@@ -64,69 +69,68 @@ const CreatePassenger = ({ onClose, onSave }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Email giriniz"
+            placeholder="Email adresini giriniz"
           />
         </div>
-
         {/* Telefon */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Telefon</label>
           <input
             type="text"
-            value={telefon}
-            onChange={(e) => setTelefon(e.target.value)}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Telefon giriniz"
+            placeholder="Telefon numarasını giriniz"
           />
         </div>
-
         {/* Cinsiyet */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Cinsiyet</label>
           <input
             type="text"
-            value={cinsiyet}
-            onChange={(e) => setCinsiyet(e.target.value)}
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Cinsiyet giriniz"
+            placeholder="Cinsiyetini giriniz"
           />
         </div>
-
         {/* Doğum Tarihi */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Doğum Tarihi</label>
           <input
             type="date"
-            value={dogumTarihi}
-            onChange={(e) => setDogumTarihi(e.target.value)}
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
             className="w-full px-3 py-2 border rounded"
           />
         </div>
-
         {/* Pasaport No */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Pasaport No</label>
           <input
             type="text"
-            value={pasaportNo}
-            onChange={(e) => setPasaportNo(e.target.value)}
+            value={passportNo}
+            onChange={(e) => setPassportNo(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Pasaport No giriniz"
+            placeholder="Pasaport numarasını giriniz"
           />
         </div>
-
-        {/* Ülke ID */}
+        {/* Ülke Seçimi */}
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Ülke ID</label>
-          <input
-            type="number"
-            value={ulkeID}
-            onChange={(e) => setUlkeID(e.target.value)}
+          <label className="block text-sm font-medium mb-1">Ülke</label>
+          <select
+            value={countryId}
+            onChange={(e) => setCountryId(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            placeholder="Ülke ID giriniz"
-          />
+          >
+            <option value="">Ülke seçiniz</option>
+            {countries.map((country) => (
+              <option key={country.UlkeID} value={country.UlkeID}>
+                {country.UlkeAdi}
+              </option>
+            ))}
+          </select>
         </div>
-
         {/* Butonlar */}
         <div className="flex justify-end space-x-2">
           <button
@@ -142,7 +146,16 @@ const CreatePassenger = ({ onClose, onSave }) => {
             Kaydet
           </button>
         </div>
+        <div className="flex justify-end space-x-2 mt-4">
+          <button
+            onClick={handleAddAddress}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          >
+            Adres Ekle
+          </button>
+        </div>
       </div>
+      {showAddressPopup && <CreateAddress onClose={() => setShowAddressPopup(false)} passengerId={passengerId} />}
     </div>
   );
 };

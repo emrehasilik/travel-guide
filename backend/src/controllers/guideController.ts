@@ -32,14 +32,25 @@ export const getGuideById = (req: Request, res: Response) => {
 };
 
 export const createGuide = (req: Request, res: Response) => {
-    const { Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili } = req.body;
-    const query = `INSERT INTO TurRehber.Rehber (Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili) VALUES ('${Ad}', '${Soyad}', '${Telefon}', '${Email}', '${Cinsiyet}', ${DeneyimYili})`;
-    sql.query(connectionString, query, (err: any, result: any) => {
+    const { Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili, Diller } = req.body;
+    const insertGuideQuery = `INSERT INTO TurRehber.Rehber (Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili) VALUES ('${Ad}', '${Soyad}', '${Telefon}', '${Email}', '${Cinsiyet}', ${DeneyimYili}); SELECT SCOPE_IDENTITY() AS RehberID;`;
+
+    sql.query(connectionString, insertGuideQuery, (err: any, result: any) => {
         if (err) {
             console.error('Error during database query:', err);
             res.status(500).send('Database error');
         } else {
-            res.status(201).send('Guide successfully added');
+            const rehberID = result[0].RehberID;
+            const insertLanguageQueries = Diller.map((dil: string) => `INSERT INTO TurRehber.Rehber_Dil (RehberID, Dil) VALUES (${rehberID}, '${dil}');`).join(' ');
+
+            sql.query(connectionString, insertLanguageQueries, (err: any) => {
+                if (err) {
+                    console.error('Error during database query:', err);
+                    res.status(500).send('Database error');
+                } else {
+                    res.status(201).json({ RehberID: rehberID, Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili, Diller });
+                }
+            });
         }
     });
 };

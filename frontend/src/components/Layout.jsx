@@ -10,6 +10,11 @@ const AdminLayout = () => {
         </div>
         <nav className="mt-4">
           <ul className="space-y-4">
+          <li className="px-4 py-2 hover:bg-blue-700">
+              <Link to="/createTour" className="block">
+                Tur Oluştur
+              </Link>
+            </li>
             <li className="px-4 py-2 hover:bg-blue-700">
               <Link to="/countryList" className="block">
                 Ülkeler
@@ -26,7 +31,7 @@ const AdminLayout = () => {
               </Link>
             </li>
             <li className="px-4 py-2 hover:bg-blue-700">
-              <Link to="/airplaneList" className="block">
+              <Link to="/planeList" className="block">
                 Uçaklar
               </Link>
             </li>
@@ -43,6 +48,11 @@ const AdminLayout = () => {
             <li className="px-4 py-2 hover:bg-blue-700">
               <Link to="/tourList" className="block">
                 Turlar
+              </Link>
+            </li>
+            <li className="px-4 py-2 hover:bg-blue-700">
+              <Link to="/routeList" className="block">
+                Rotalar
               </Link>
             </li>
           </ul>

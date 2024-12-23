@@ -30,7 +30,6 @@ export const getCityById = (req: Request, res: Response) => {
         }
     });
 };
-
 export const createCity = (req: Request, res: Response) => {
     const { SehirAdi, UlkeID, SehirKodu, Nufus, Aciklama } = req.body;
     const query = `INSERT INTO TurRehber.Sehir (SehirAdi, UlkeID, SehirKodu, Nufus, Aciklama) VALUES ('${SehirAdi}', ${UlkeID}, '${SehirKodu}', ${Nufus}, '${Aciklama}')`;

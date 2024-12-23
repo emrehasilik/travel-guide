@@ -1,79 +1,59 @@
 import React, { useState } from 'react';
+import useCountryStore from '../store/countryStore';
+import { useNavigate } from 'react-router-dom';
 
-const CreateCountry = ({ onClose, onSave }) => {
-  const [newCountryName, setNewCountryName] = useState('');
-  const [newCities, setNewCities] = useState([]);
-  const [tempCity, setTempCity] = useState('');
+const CreateCountry = ({ onClose }) => {
+  const [countryName, setCountryName] = useState('');
+  const [countryCode, setCountryCode] = useState('');
+  const [description, setDescription] = useState('');
+  const { addCountry, fetchCountries } = useCountryStore();
+  const navigate = useNavigate();
 
-  // Şehir ekle
-  const handleAddCity = () => {
-    if (tempCity.trim() === '') return;
-
-    setNewCities([...newCities, tempCity]);
-    setTempCity(''); // Geçici şehir ismini sıfırla
-  };
-
-  // Kaydet
-  const handleSave = () => {
-    if (newCountryName.trim() === '') return;
-
-    const newCountry = {
-      UlkeAdi: newCountryName,
-      cities: newCities,
-    };
-    onSave(newCountry); // Ülkeyi kaydet
-    onClose(); // Popup'u kapat
+  const handleSave = async () => {
+    if (countryName.trim() === '' || countryCode.trim() === '') return;
+    await addCountry(countryName, countryCode, description);
+    await fetchCountries(); // Ülke listesini güncelle
+    onClose(); // Popup'ı kapat
+    navigate('/countryList'); // Ülke listesine yönlendir
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded shadow-lg w-96">
         <h3 className="text-lg font-bold mb-4">Yeni Ülke Ekle</h3>
-
         {/* Ülke Adı */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Ülke Adı</label>
           <input
             type="text"
-            value={newCountryName}
-            onChange={(e) => setNewCountryName(e.target.value)}
+            value={countryName}
+            onChange={(e) => setCountryName(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             placeholder="Ülke adını giriniz"
           />
         </div>
-
-        {/* Şehir Ekle */}
+        {/* Ülke Kodu */}
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Şehirler</label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              value={tempCity}
-              onChange={(e) => setTempCity(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-              placeholder="Şehir adı giriniz"
-            />
-            <button
-              onClick={handleAddCity}
-              className="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600"
-            >
-              + Ekle
-            </button>
-          </div>
+          <label className="block text-sm font-medium mb-1">Ülke Kodu</label>
+          <input
+            type="text"
+            value={countryCode}
+            onChange={(e) => setCountryCode(e.target.value)}
+            className="w-full px-3 py-2 border rounded"
+            placeholder="Ülke kodunu giriniz"
+          />
         </div>
-
-        {/* Eklenen Şehirler */}
+        {/* Açıklama */}
         <div className="mb-4">
-          {newCities.map((city, index) => (
-            <span
-              key={index}
-              className="inline-block bg-gray-200 px-3 py-1 text-sm rounded-full mr-2 mb-2"
-            >
-              {city}
-            </span>
-          ))}
+          <label className="block text-sm font-medium mb-1">Açıklama</label>
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full px-3 py-2 border rounded"
+            placeholder="Açıklama giriniz"
+          />
         </div>
-
         {/* Butonlar */}
         <div className="flex justify-end space-x-2">
           <button
