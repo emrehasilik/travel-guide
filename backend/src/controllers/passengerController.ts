@@ -60,13 +60,25 @@ export const updatePassenger = (req: Request, res: Response) => {
 
 export const deletePassenger = (req: Request, res: Response) => {
     const passengerId = req.params.id;
-    const query = `DELETE FROM TurRehber.Yolcu WHERE YolcuID = ${passengerId}`;
-    sql.query(connectionString, query, (err: any, result: any) => {
+  
+    // Önce adresleri sil
+    const deleteAddressesQuery = `DELETE FROM TurRehber.Yolcu_Adres WHERE YolcuID = ?`;
+    sql.query(connectionString, deleteAddressesQuery, [passengerId], (err: any) => {
+      if (err) {
+        console.error('Error deleting passenger addresses:', err);
+        return res.status(500).send('Error deleting passenger addresses.');
+      }
+  
+      // Adresler silindikten sonra yolcuyu sil
+      const deletePassengerQuery = `DELETE FROM TurRehber.Yolcu WHERE YolcuID = ?`;
+      sql.query(connectionString, deletePassengerQuery, [passengerId], (err: any, result: any) => {
         if (err) {
-            console.error('Error during database query:', err);
-            res.status(500).send('Database error');
-        } else {
-            res.send('Passenger successfully deleted');
+          console.error('Error deleting passenger:', err);
+          return res.status(500).send('Error deleting passenger.');
         }
+  
+        res.send('Passenger and related addresses successfully deleted.');
+      });
     });
-};
+  };
+  
