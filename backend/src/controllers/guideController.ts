@@ -116,17 +116,55 @@ export const createGuide = async (req: Request, res: Response): Promise<void> =>
 };
 
 export const updateGuide = (req: Request, res: Response) => {
-    const guideId = req.params.id;
-    const { Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili } = req.body;
-    const query = `UPDATE TurRehber.Rehber SET Ad = '${Ad}', Soyad = '${Soyad}', Telefon = '${Telefon}', Email = '${Email}', Cinsiyet = '${Cinsiyet}', DeneyimYili = ${DeneyimYili} WHERE RehberID = ${guideId}`;
-    sql.query(connectionString, query, (err: any, result: any) => {
+  const guideId = req.params.id;
+  const { Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili, Diller } = req.body;
+  const query = `UPDATE TurRehber.Rehber SET Ad = ?, Soyad = ?, Telefon = ?, Email = ?, Cinsiyet = ?, DeneyimYili = ? WHERE RehberID = ?`;
+  const params = [Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili, guideId];
+
+  sql.query(connectionString, query, params, (err: any, result: any) => {
+    if (err) {
+      console.error('Error during database query:', err);
+      res.status(500).send('Database error');
+    } else {
+      const deleteLanguagesQuery = `DELETE FROM TurRehber.Rehber_Dil WHERE RehberID = ?`;
+      sql.query(connectionString, deleteLanguagesQuery, [guideId], (err: any) => {
         if (err) {
-            console.error('Error during database query:', err);
-            res.status(500).send('Database error');
-        } else {
-            res.send('Guide successfully updated');
+          console.error('Error during delete languages query:', err);
+          res.status(500).send('Database error');
+          return;
         }
-    });
+
+        const insertLanguageQueries = Diller.map((dil: string) => ({
+          query: `INSERT INTO TurRehber.Rehber_Dil (RehberID, Dil) VALUES (?, ?);`,
+          params: [guideId, dil]
+        }));
+
+        const executeLanguageQueries = async () => {
+          for (const { query, params } of insertLanguageQueries) {
+            await new Promise<void>((resolve, reject) => {
+              sql.query(connectionString, query, params, (err: any) => {
+                if (err) {
+                  console.error('Error during insert language query:', err.message);
+                  reject(err);
+                } else {
+                  resolve();
+                }
+              });
+            });
+          }
+        };
+
+        executeLanguageQueries()
+          .then(() => {
+            res.send('Guide successfully updated');
+          })
+          .catch((error) => {
+            console.error('Error during language insertion:', error.message);
+            res.status(500).send('Failed to insert guide languages');
+          });
+      });
+    }
+  });
 };
 
 export const deleteGuide = (req: Request, res: Response) => {

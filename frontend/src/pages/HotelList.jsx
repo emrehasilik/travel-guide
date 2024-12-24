@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import useHotelStore from '../store/hotelStore';
 import CreateHotel from '../components/CreateHotel';
+import EditHotel from '../components/EditHotel';
 
 const HotelList = () => {
   const { hotels, fetchHotels, deleteHotel } = useHotelStore();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
+  const [selectedHotel, setSelectedHotel] = useState(null);
 
   useEffect(() => {
-    fetchHotels(); // Sayfa ilk yüklendiğinde otelleri getir
+    fetchHotels();
   }, [fetchHotels]);
 
   const handleOpenPopup = () => {
@@ -18,12 +21,14 @@ const HotelList = () => {
     setIsPopupOpen(false);
   };
 
-  const handleAddHotel = (newHotel) => {
-    // Yeni oteli mevcut listeye ekle
-    useHotelStore.setState((state) => ({
-      hotels: [...state.hotels, newHotel],
-    }));
-    handleClosePopup();
+  const handleOpenEditPopup = (hotel) => {
+    setSelectedHotel(hotel);
+    setIsEditPopupOpen(true);
+  };
+
+  const handleCloseEditPopup = () => {
+    setIsEditPopupOpen(false);
+    setSelectedHotel(null);
   };
 
   return (
@@ -37,21 +42,36 @@ const HotelList = () => {
       </button>
       <ul className="list-none p-0">
         {hotels.map((hotel) => (
-          <li
-            key={hotel.OtelID}
-            className="flex justify-between items-center p-2 mb-2 bg-white border border-gray-300 rounded"
-          >
-            <span>{hotel.OtelAdi}</span>
-            <button
-              className="bg-red-500 text-white p-2 rounded"
-              onClick={() => deleteHotel(hotel.OtelID)}
-            >
-              Sil
-            </button>
+          <li key={hotel.OtelID} className="flex flex-col p-2 mb-2 bg-white border border-gray-300 rounded">
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="font-bold">{hotel.OtelAdi}</span>
+              </div>
+              <div>
+                <button
+                  className="bg-yellow-500 text-white p-2 rounded mr-2"
+                  onClick={() => handleOpenEditPopup(hotel)}
+                >
+                  Düzenle
+                </button>
+                <button
+                  className="bg-red-500 text-white p-2 rounded"
+                  onClick={() => deleteHotel(hotel.OtelID)}
+                >
+                  Sil
+                </button>
+              </div>
+            </div>
+            <div className="mt-2">
+              <p><strong>Şehir ID:</strong> {hotel.SehirID}</p>
+              <p><strong>Yıldız Sayısı:</strong> {hotel.YildizSayisi}</p>
+              <p><strong>Açıklama:</strong> {hotel.Aciklama}</p>
+            </div>
           </li>
         ))}
       </ul>
-      {isPopupOpen && <CreateHotel onClose={handleClosePopup} onAdd={handleAddHotel} />}
+      {isPopupOpen && <CreateHotel onClose={handleClosePopup} />}
+      {isEditPopupOpen && <EditHotel hotel={selectedHotel} onClose={handleCloseEditPopup} />}
     </div>
   );
 };

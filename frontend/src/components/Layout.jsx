@@ -30,11 +30,7 @@ const AdminLayout = () => {
                 Rehberler
               </Link>
             </li>
-            <li className="px-4 py-2 hover:bg-blue-700">
-              <Link to="/planeList" className="block">
-                Uçaklar
-              </Link>
-            </li>
+           
             <li className="px-4 py-2 hover:bg-blue-700">
               <Link to="/hotelList" className="block">
                 Oteller
@@ -50,11 +46,7 @@ const AdminLayout = () => {
                 Turlar
               </Link>
             </li>
-            <li className="px-4 py-2 hover:bg-blue-700">
-              <Link to="/routeList" className="block">
-                Rotalar
-              </Link>
-            </li>
+        
           </ul>
         </nav>
       </aside>

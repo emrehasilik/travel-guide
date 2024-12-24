@@ -56,17 +56,18 @@ export const createHotel = (req: Request, res: Response) => {
 export const updateHotel = (req: Request, res: Response) => {
     const hotelId = req.params.id;
     const { OtelAdi, SehirID, YildizSayisi, Aciklama } = req.body;
-    const query = `UPDATE TurRehber.Otel SET OtelAdi = '${OtelAdi}', SehirID = ${SehirID}, YildizSayisi = ${YildizSayisi}, Aciklama = '${Aciklama}' WHERE OtelID = ${hotelId}`;
-    sql.query(connectionString, query, (err: any, result: any) => {
-        if (err) {
-            console.error('Error during database query:', err);
-            res.status(500).send('Database error');
-        } else {
-            res.send('Hotel successfully updated');
-        }
+    const query = `UPDATE TurRehber.Otel SET OtelAdi = ?, SehirID = ?, YildizSayisi = ?, Aciklama = ? WHERE OtelID = ?`;
+    const params = [OtelAdi, SehirID, YildizSayisi, Aciklama, hotelId];
+  
+    sql.query(connectionString, query, params, (err: any, result: any) => {
+      if (err) {
+        console.error('Error during database query:', err);
+        res.status(500).send('Database error');
+      } else {
+        res.send('Hotel successfully updated');
+      }
     });
-};
-
+  };
 export const deleteHotel = (req: Request, res: Response) => {
     const hotelId = req.params.id;
     const query = `DELETE FROM TurRehber.Otel WHERE OtelID = ${hotelId}`;
