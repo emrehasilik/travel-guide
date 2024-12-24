@@ -32,10 +32,21 @@ const useCountryStore = create((set) => ({
       console.error('Error adding country:', error);
     }
   },
-  removeCountry: (id) => {
-    set((state) => ({
-      countries: state.countries.filter((country) => country.UlkeID !== id),
-    }));
+  removeCountry: async (id) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/countries/${id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        set((state) => ({
+          countries: state.countries.filter((country) => country.UlkeID !== id),
+        }));
+      } else {
+        console.error('Error removing country:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error removing country:', error);
+    }
   },
 }));
 

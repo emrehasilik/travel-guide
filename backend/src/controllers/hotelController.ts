@@ -33,13 +33,22 @@ export const getHotelById = (req: Request, res: Response) => {
 
 export const createHotel = (req: Request, res: Response) => {
     const { OtelAdi, SehirID, YildizSayisi, Aciklama } = req.body;
-    const query = `INSERT INTO TurRehber.Otel (OtelAdi, SehirID, YildizSayisi, Aciklama) VALUES ('${OtelAdi}', ${SehirID}, ${YildizSayisi}, '${Aciklama}')`;
-    sql.query(connectionString, query, (err: any, result: any) => {
+    const query = `INSERT INTO TurRehber.Otel (OtelAdi, SehirID, YildizSayisi, Aciklama) OUTPUT INSERTED.OtelID VALUES (?, ?, ?, ?)`;
+    const params = [OtelAdi, SehirID, YildizSayisi, Aciklama];
+
+    sql.query(connectionString, query, params, (err: any, result: any) => {
         if (err) {
             console.error('Error during database query:', err);
             res.status(500).send('Database error');
         } else {
-            res.status(201).send('Hotel successfully added');
+            const newHotel = {
+                OtelID: result[0].OtelID,
+                OtelAdi,
+                SehirID,
+                YildizSayisi,
+                Aciklama
+            };
+            res.status(201).json(newHotel);
         }
     });
 };

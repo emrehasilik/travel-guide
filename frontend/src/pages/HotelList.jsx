@@ -7,7 +7,7 @@ const HotelList = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   useEffect(() => {
-    fetchHotels();
+    fetchHotels(); // Sayfa ilk yüklendiğinde otelleri getir
   }, [fetchHotels]);
 
   const handleOpenPopup = () => {
@@ -16,6 +16,14 @@ const HotelList = () => {
 
   const handleClosePopup = () => {
     setIsPopupOpen(false);
+  };
+
+  const handleAddHotel = (newHotel) => {
+    // Yeni oteli mevcut listeye ekle
+    useHotelStore.setState((state) => ({
+      hotels: [...state.hotels, newHotel],
+    }));
+    handleClosePopup();
   };
 
   return (
@@ -29,15 +37,21 @@ const HotelList = () => {
       </button>
       <ul className="list-none p-0">
         {hotels.map((hotel) => (
-          <li key={hotel.OtelID} className="flex justify-between items-center p-2 mb-2 bg-white border border-gray-300 rounded">
-            {hotel.OtelAdi}
-            <button className="bg-red-500 text-white p-2 rounded" onClick={() => deleteHotel(hotel.OtelID)}>
+          <li
+            key={hotel.OtelID}
+            className="flex justify-between items-center p-2 mb-2 bg-white border border-gray-300 rounded"
+          >
+            <span>{hotel.OtelAdi}</span>
+            <button
+              className="bg-red-500 text-white p-2 rounded"
+              onClick={() => deleteHotel(hotel.OtelID)}
+            >
               Sil
             </button>
           </li>
         ))}
       </ul>
-      {isPopupOpen && <CreateHotel onClose={handleClosePopup} />}
+      {isPopupOpen && <CreateHotel onClose={handleClosePopup} onAdd={handleAddHotel} />}
     </div>
   );
 };

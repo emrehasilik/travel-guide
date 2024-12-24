@@ -30,25 +30,63 @@ export const getCountryById = (req: Request, res: Response) => {
         }
     });
 };
-
-export const createCountry = (req: Request, res: Response) => {
+export const createCountry = async (req: Request, res: Response): Promise<void> => {
+    console.log('CreateCountry endpoint called');
     const { UlkeAdi, UlkeKodu, Aciklama } = req.body;
-    const query = `INSERT INTO TurRehber.Ulke (UlkeAdi, UlkeKodu, Aciklama) VALUES ('${UlkeAdi}', '${UlkeKodu}', '${Aciklama}'); SELECT SCOPE_IDENTITY() AS UlkeID;`;
-    sql.query(connectionString, query, (err: any, result: any) => {
-        if (err) {
-            console.error('Error during database query:', err);
-            res.status(500).send('Database error');
-        } else {
+
+    console.log('Request body:', { UlkeAdi, UlkeKodu, Aciklama });
+
+    if (!UlkeAdi || !UlkeKodu || !Aciklama) {
+        console.error('Validation failed: Missing fields');
+        res.status(400).send('All fields are required');
+        return;
+    }
+
+    try {
+        const query = `
+            INSERT INTO TurRehber.Ulke (UlkeAdi, UlkeKodu, Aciklama)
+            OUTPUT INSERTED.UlkeID
+            VALUES (?, ?, ?);
+        `;
+        const params = [UlkeAdi, UlkeKodu, Aciklama];
+
+        console.log('Executing query:', query);
+        console.log('Query parameters:', params);
+
+        sql.query(connectionString, query, params, (err: any, results: any) => {
+            if (err) {
+                console.error('Database query error:', err.message);
+                res.status(500).send('Database error');
+                return;
+            }
+
+            console.log('Query results:', results);
+
+            // Direkt olarak results[0] kontrol ediliyor
+            const insertedId = results?.[0]?.UlkeID;
+
+            if (!insertedId) {
+                console.error('Failed to retrieve inserted ID');
+                res.status(500).send('Failed to create country');
+                return;
+            }
+
             const newCountry = {
-                UlkeID: result[0].UlkeID,
+                UlkeID: insertedId,
                 UlkeAdi,
                 UlkeKodu,
-                Aciklama
+                Aciklama,
             };
+
+            console.log('New country created:', newCountry);
             res.status(201).json(newCountry);
-        }
-    });
+        });
+    } catch (error: any) {
+        console.error('Error in createCountry:', error.message);
+        res.status(500).send('An unexpected error occurred');
+    }
 };
+
 
 export const updateCountry = (req: Request, res: Response) => {
     const countryId = req.params.id;

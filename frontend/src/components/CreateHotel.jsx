@@ -17,11 +17,11 @@ const CreateHotel = ({ onClose }) => {
   }, [fetchCities]);
 
   const handleSave = async () => {
-    if (hotelName.trim() === '' || cityId.trim() === '') return;
-    await addHotel(hotelName, cityId, starRating, description);
+    if (hotelName.trim() === '' || cityId.trim() === '') return; // Doğrulama
+    await addHotel(hotelName, cityId, starRating, description); // Otel ekle
     onClose(); // Popup'ı kapat
-    navigate('/hotelList'); // Otel listesine yönlendir
   };
+  
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">

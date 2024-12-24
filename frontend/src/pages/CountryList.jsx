@@ -3,7 +3,7 @@ import useCountryStore from '../store/countryStore';
 import CreateCountry from '../components/CreateCountry';
 
 const CountryList = () => {
-  const { countries, fetchCountries, deleteCountry } = useCountryStore();
+  const { countries, fetchCountries, removeCountry } = useCountryStore();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ const CountryList = () => {
             {country.UlkeAdi}
             <button
               className="bg-red-500 text-white p-2 rounded"
-              onClick={() => deleteCountry(country.UlkeID)}
+              onClick={() => removeCountry(country.UlkeID)}
             >
               Sil
             </button>

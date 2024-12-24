@@ -22,8 +22,9 @@ const useCityStore = create((set) => ({
       });
       if (response.ok) {
         const newCity = await response.json();
+        // State'i güncelle
         set((state) => ({
-          cities: [...state.cities, newCity],
+          cities: [...state.cities, newCity], // Yeni şehir ekleniyor
         }));
       } else {
         console.error('Error adding city:', response.statusText);
@@ -32,6 +33,7 @@ const useCityStore = create((set) => ({
       console.error('Error adding city:', error);
     }
   },
+  
   deleteCity: async (id) => {
     try {
       const response = await fetch(`http://localhost:3000/api/cities/${id}`, {

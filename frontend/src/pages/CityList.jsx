@@ -18,6 +18,11 @@ const CityList = () => {
     setIsPopupOpen(false);
   };
 
+  const handleAddCity = (newCity) => {
+    useCityStore.getState().addCity(newCity.SehirAdi, newCity.UlkeID, newCity.SehirKodu, newCity.Nufus, newCity.Aciklama);
+    handleClosePopup();
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-4 bg-gray-100 rounded shadow">
       <h2 className="text-2xl font-bold mb-4">Şehir Listesi</h2>
@@ -29,15 +34,21 @@ const CityList = () => {
       </button>
       <ul className="list-none p-0">
         {cities.map((city) => (
-          <li key={city.SehirID} className="flex justify-between items-center p-2 mb-2 bg-white border border-gray-300 rounded">
+          <li
+            key={city.SehirID}
+            className="flex justify-between items-center p-2 mb-2 bg-white border border-gray-300 rounded"
+          >
             {city.SehirAdi}
-            <button className="bg-red-500 text-white p-2 rounded" onClick={() => deleteCity(city.SehirID)}>
+            <button
+              className="bg-red-500 text-white p-2 rounded"
+              onClick={() => deleteCity(city.SehirID)}
+            >
               Sil
             </button>
           </li>
         ))}
       </ul>
-      {isPopupOpen && <CreateCity onClose={handleClosePopup} />}
+      {isPopupOpen && <CreateCity onClose={handleClosePopup} onAddCity={handleAddCity} />}
     </div>
   );
 };
