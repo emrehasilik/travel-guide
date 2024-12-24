@@ -60,7 +60,7 @@ export const createCountry = async (req: Request, res: Response): Promise<void> 
                 return;
             }
 
-            console.log('Query results:', results);
+            console.log('veritabanı bağlantısı başarıyla gerçekleşti:', results);
 
             // Direkt olarak results[0] kontrol ediliyor
             const insertedId = results?.[0]?.UlkeID;

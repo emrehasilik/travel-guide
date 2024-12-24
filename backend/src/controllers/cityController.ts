@@ -7,16 +7,21 @@ dotenv.config();
 const connectionString = `server=${process.env.DB_SERVER};Database=${process.env.DB_DATABASE};Trusted_Connection=Yes;Driver={SQL Server Native Client 11.0};`;
 
 export const getAllCities = (req: Request, res: Response) => {
-    const query = "SELECT * FROM TurRehber.Sehir";
+    const query = `
+      SELECT s.SehirID, s.SehirAdi, s.UlkeID, u.UlkeAdi
+      FROM TurRehber.Sehir s
+      INNER JOIN TurRehber.Ulke u ON s.UlkeID = u.UlkeID
+    `;
     sql.query(connectionString, query, (err: any, rows: any) => {
         if (err) {
-            console.error('Error during database query:', err);
+            console.error('Error fetching cities:', err);
             res.status(500).send('Database error');
         } else {
             res.json(rows);
         }
     });
 };
+
 
 export const getCityById = (req: Request, res: Response) => {
     const cityId = req.params.id;

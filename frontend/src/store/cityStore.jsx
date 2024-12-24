@@ -4,9 +4,9 @@ const useCityStore = create((set) => ({
   cities: [],
   fetchCities: async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/cities'); // Tam URL'yi kullanın
+      const response = await fetch('http://localhost:3000/api/cities');
       const data = await response.json();
-      set({ cities: data });
+      set({ cities: data }); // UlkeAdi dahil, tüm şehirler alınır
     } catch (error) {
       console.error('Error fetching cities:', error);
     }
@@ -33,15 +33,14 @@ const useCityStore = create((set) => ({
       console.error('Error adding city:', error);
     }
   },
-  
-  deleteCity: async (id) => {
+  deleteCity: async (SehirID) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/cities/${id}`, {
+      const response = await fetch(`http://localhost:3000/api/cities/${SehirID}`, {
         method: 'DELETE',
       });
       if (response.ok) {
         set((state) => ({
-          cities: state.cities.filter((city) => city.SehirID !== id),
+          cities: state.cities.filter((city) => city.SehirID !== SehirID),
         }));
       } else {
         console.error('Error deleting city:', response.statusText);

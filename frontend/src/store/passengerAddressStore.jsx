@@ -1,28 +1,49 @@
+// src/store/passengerAddressStoreNew.jsx
 import { create } from 'zustand';
 
-const usePassengerAddressStore = create((set) => ({
+const usePassengerAddressStoreNew = create((set) => ({
   addresses: [],
-  addAddress: async (YolcuID, AdresSatiri1, AdresSatiri2, SehirID, PostaKodu, UlkeID) => {
+  loading: false,
+  error: null,
+
+  // Adresleri getir (Tüm adresleri çekip front-end'de filtreleyeceğiz)
+  fetchAddresses: async () => {
+    set({ loading: true, error: null });
     try {
-      const response = await fetch('http://localhost:3000/api/passengerAddresses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ YolcuID, AdresSatiri1, AdresSatiri2, SehirID, PostaKodu, UlkeID }),
-      });
-      if (response.ok) {
-        const newAddress = await response.json();
-        set((state) => ({
-          addresses: [...state.addresses, newAddress],
-        }));
-      } else {
-        console.error('Error adding address:', response.statusText);
+      const response = await fetch('http://localhost:3000/api/passenger-addresses');
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
       }
-    } catch (error) {
-      console.error('Error adding address:', error);
+      const data = await response.json();
+      set({ addresses: data, loading: false });
+    } catch (err) {
+      console.error('Error fetching addresses:', err);
+      set({ error: err.message, loading: false });
+    }
+  },
+
+  // Yeni adres ekleme
+  createAddress: async (addressData) => {
+    // addressData: { YolcuID, AdresSatiri1, AdresSatiri2, SehirID, PostaKodu, UlkeID }
+    try {
+      const response = await fetch('http://localhost:3000/api/passenger-addresses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addressData),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create address');
+      }
+      // Adres eklendikten sonra tekrar fetch
+      await response.text(); 
+      await usePassengerAddressStoreNew.getState().fetchAddresses();
+
+      return true;
+    } catch (err) {
+      console.error('Error creating address:', err);
+      return false;
     }
   },
 }));
 
-export default usePassengerAddressStore;
+export default usePassengerAddressStoreNew;

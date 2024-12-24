@@ -1,113 +1,121 @@
+// src/components/CreateAddressNew.jsx
 import React, { useState, useEffect } from 'react';
-import usePassengerAddressStore from '../store/passengerAddressStore';
 import useCityStore from '../store/cityStore';
-import useCountryStore from '../store/countryStore';
-import { useNavigate } from 'react-router-dom';
+import usePassengerAddressStoreNew from '../store/passengerAddressStore';
 
-const CreateAddress = ({ onClose, passengerId }) => {
-  const [addressLine1, setAddressLine1] = useState('');
-  const [addressLine2, setAddressLine2] = useState('');
-  const [cityId, setCityId] = useState('');
-  const [postalCode, setPostalCode] = useState('');
-  const [countryId, setCountryId] = useState('');
-  const { addAddress } = usePassengerAddressStore();
+const CreateAddressNew = ({ onClose, passengerId }) => {
+  const [AdresSatiri1, setAdresSatiri1] = useState('');
+  const [AdresSatiri2, setAdresSatiri2] = useState('');
+  const [selectedCityName, setSelectedCityName] = useState('');
+  const [PostaKodu, setPostaKodu] = useState('');
+
   const { cities, fetchCities } = useCityStore();
-  const { countries, fetchCountries } = useCountryStore();
-  const navigate = useNavigate();
+  const createAddress = usePassengerAddressStoreNew((state) => state.createAddress);
 
   useEffect(() => {
     fetchCities();
-    fetchCountries();
-  }, [fetchCities, fetchCountries]);
+  }, [fetchCities]);
+
+  // Seçili şehrin ülkesini bul
+  const chosenCity = cities.find((c) => c.SehirAdi === selectedCityName);
+  // chosenCity.UlkeID -> Bu ülkeyi bulmak için countryStore'a da bakabilirsiniz
 
   const handleSave = async () => {
-    if (addressLine1.trim() === '' || cityId.trim() === '' || countryId.trim() === '') return;
-    await addAddress(passengerId, addressLine1, addressLine2, cityId, postalCode, countryId);
-    onClose(); // Popup'ı kapat
-    navigate('/passengerList'); // Yolcu listesine yönlendir
+    if (!passengerId || !AdresSatiri1.trim() || !selectedCityName) {
+      alert('Zorunlu alanları doldurun.');
+      return;
+    }
+    // cityName'i (SehirAdi) backend'e gönderiyoruz
+    // backend createPassengerAddress() -> city tablosunda bu adı arayıp SehirID, UlkeID bulacak
+    const success = await createAddress({
+      YolcuID: passengerId,
+      SehirAdi: selectedCityName,
+      AdresSatiri1,
+      AdresSatiri2,
+      PostaKodu,
+    });
+    if (success) {
+      onClose();
+    } else {
+      alert('Adres eklenirken hata oluştu');
+    }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded shadow-lg w-96">
-        <h3 className="text-lg font-bold mb-4">Yeni Adres Ekle</h3>
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+      <div className="bg-white p-6 rounded w-96">
+        <h2 className="text-xl font-semibold mb-4">Adres Ekle</h2>
+
         {/* Adres Satırı 1 */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Adres Satırı 1</label>
+        <label className="block mb-2">
+          Adres Satırı 1:
           <input
-            type="text"
-            value={addressLine1}
-            onChange={(e) => setAddressLine1(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
-            placeholder="Adres satırı 1 giriniz"
+            value={AdresSatiri1}
+            onChange={(e) => setAdresSatiri1(e.target.value)}
+            className="border w-full p-1"
           />
-        </div>
+        </label>
+
         {/* Adres Satırı 2 */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Adres Satırı 2</label>
+        <label className="block mb-2">
+          Adres Satırı 2:
           <input
-            type="text"
-            value={addressLine2}
-            onChange={(e) => setAddressLine2(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
-            placeholder="Adres satırı 2 giriniz"
+            value={AdresSatiri2}
+            onChange={(e) => setAdresSatiri2(e.target.value)}
+            className="border w-full p-1"
           />
-        </div>
-        {/* Şehir Seçimi */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Şehir</label>
+        </label>
+
+        {/* Şehir Adı Seçimi */}
+        <label className="block mb-2">
+          Şehir:
           <select
-            value={cityId}
-            onChange={(e) => setCityId(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
+            value={selectedCityName}
+            onChange={(e) => setSelectedCityName(e.target.value)}
+            className="border w-full p-1"
           >
-            <option value="">Şehir seçiniz</option>
+            <option value="">Şehir Seçiniz</option>
             {cities.map((city) => (
-              <option key={city.SehirID} value={city.SehirID}>
+              <option key={city.SehirID} value={city.SehirAdi}>
                 {city.SehirAdi}
               </option>
             ))}
           </select>
-        </div>
+        </label>
+
         {/* Posta Kodu */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Posta Kodu</label>
+        <label className="block mb-2">
+          Posta Kodu:
           <input
-            type="text"
-            value={postalCode}
-            onChange={(e) => setPostalCode(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
-            placeholder="Posta kodunu giriniz"
+            value={PostaKodu}
+            onChange={(e) => setPostaKodu(e.target.value)}
+            className="border w-full p-1"
           />
-        </div>
-        {/* Ülke Seçimi */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Ülke</label>
-          <select
-            value={countryId}
-            onChange={(e) => setCountryId(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
-          >
-            <option value="">Ülke seçiniz</option>
-            {countries.map((country) => (
-              <option key={country.UlkeID} value={country.UlkeID}>
-                {country.UlkeAdi}
-              </option>
-            ))}
-          </select>
-        </div>
+        </label>
+
+        {/* Ülke Adı (Otomatik) */}
+       {/* Ülke Adı (Otomatik) */}
+<label className="block mb-2">
+  Ülke:
+  <input
+    type="text"
+    readOnly
+    className="border w-full p-1 bg-gray-100"
+    value={
+      chosenCity // city -> country
+        ? chosenCity.UlkeAdi // Artık UlkeAdi'ni gösteriyoruz
+        : ''
+    }
+  />
+</label>
+
+
         {/* Butonlar */}
         <div className="flex justify-end space-x-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-          >
+          <button onClick={onClose} className="bg-gray-200 px-3 py-1 rounded">
             İptal
           </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
+          <button onClick={handleSave} className="bg-blue-500 text-white px-3 py-1 rounded">
             Kaydet
           </button>
         </div>
@@ -116,4 +124,4 @@ const CreateAddress = ({ onClose, passengerId }) => {
   );
 };
 
-export default CreateAddress;
+export default CreateAddressNew;

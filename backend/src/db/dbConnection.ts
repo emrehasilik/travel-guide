@@ -9,7 +9,7 @@ export const connectToDatabase = () => {
         if (err) {
             console.error('Error during database query:', err);
         } else {
-            console.log('Query Result:', rows);
+            console.log('Veritabanı bağlantısı başarıyla gerçekleşti:', rows);
         }
     });
 };

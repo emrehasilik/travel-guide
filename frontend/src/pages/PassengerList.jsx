@@ -1,78 +1,74 @@
+// src/pages/passengerNew.jsx
 import React, { useEffect, useState } from 'react';
-import usePassengerStore from '../store/passengerStore';
-import CreatePassenger from '../components/CreatePassenger';
-import AddressDetails from '../components/AddressDetails';
+import usePassengerStoreNew from '../store/passengerStore';
+import usePassengerAddressStoreNew from '../store/passengerAddressStore';
+import CreatePassengerNew from '../components/CreatePassenger';
+import CreateAddressNew from '../components/CreateAddress';
 
-const PassengerList = () => {
-  const { passengers, fetchPassengers, deletePassenger } = usePassengerStore();
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [addresses, setAddresses] = useState([
-    {
-      YolcuID: 1,
-      AdresSatiri1: 'Atatürk Caddesi No:123',
-      AdresSatiri2: 'Daire 5, İstanbul',
-      SehirID: 1,
-      PostaKodu: '34000',
-      UlkeID: 1,
-    },
-    {
-      YolcuID: 2,
-      AdresSatiri1: 'Kızılay Sokak No:45',
-      AdresSatiri2: 'Çankaya, Ankara',
-      SehirID: 2,
-      PostaKodu: '06510',
-      UlkeID: 1,
-    },
-  ]);
+const PassengerNew = () => {
+  const { passengers, fetchPassengers, deletePassenger } = usePassengerStoreNew();
+  const { addresses, fetchAddresses } = usePassengerAddressStoreNew();
+
+  const [showPassengerForm, setShowPassengerForm] = useState(false);
   const [selectedPassengerId, setSelectedPassengerId] = useState(null);
+  const [showAddressForm, setShowAddressForm] = useState(false);
 
   useEffect(() => {
     fetchPassengers();
-  }, [fetchPassengers]);
+    fetchAddresses();
+  }, [fetchPassengers, fetchAddresses]);
 
-  const handleOpenPopup = () => {
-    setIsPopupOpen(true);
-  };
-
-  const handleClosePopup = () => {
-    setIsPopupOpen(false);
-  };
-
-  const handleShowAddress = (yolcuID) => {
-    setSelectedPassengerId(yolcuID);
-  };
-
-  const handleCloseAddress = () => {
-    setSelectedPassengerId(null);
-  };
+  // Seçili yolcunun adreslerini filtrele
+  const filteredAddresses = addresses.filter(
+    (addr) => addr.YolcuID === selectedPassengerId
+  );
 
   return (
-    <div className="max-w-2xl mx-auto p-4 bg-gray-100 rounded shadow">
-      <h2 className="text-2xl font-bold mb-4">Yolcu Listesi</h2>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Yolcu Listesi</h1>
       <button
-        onClick={handleOpenPopup}
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+        className="bg-green-500 text-white px-4 py-2 rounded mb-4"
+        onClick={() => setShowPassengerForm(true)}
       >
         Yolcu Ekle
       </button>
-      <ul className="list-none p-0">
+
+      {/* Yolcu Listesi */}
+      <ul className="space-y-2">
         {passengers.map((passenger) => (
           <li
             key={passenger.YolcuID}
-            className="flex justify-between items-center p-2 mb-2 bg-white border border-gray-300 rounded"
+            className="border p-2 rounded flex justify-between items-center"
           >
             <div>
-              {passenger.Ad} {passenger.Soyad} {/* Ad ve Soyad birleştirildi */}
+              <div>
+                <strong>{passenger.Ad} {passenger.Soyad}</strong> 
+              </div>
+              <div className="text-sm text-gray-600">
+                Email: {passenger.Email || 'N/A'}, Tel: {passenger.Telefon || 'N/A'}
+              </div>
             </div>
-            <div className="flex space-x-2">
+
+            <div className="space-x-2">
               <button
-                className="bg-blue-500 text-white p-2 rounded"
-                onClick={() => handleShowAddress(passenger.YolcuID)}
+                className="bg-blue-500 text-white px-2 py-1 rounded"
+                onClick={() => {
+                  setSelectedPassengerId(passenger.YolcuID);
+                }}
               >
-                Adres Bilgileri
+                Adresleri Gör
               </button>
               <button
-                className="bg-red-500 text-white p-2 rounded"
+                className="bg-purple-500 text-white px-2 py-1 rounded"
+                onClick={() => {
+                  setSelectedPassengerId(passenger.YolcuID);
+                  setShowAddressForm(true);
+                }}
+              >
+                Adres Ekle
+              </button>
+              <button
+                className="bg-red-500 text-white px-2 py-1 rounded"
                 onClick={() => deletePassenger(passenger.YolcuID)}
               >
                 Sil
@@ -81,17 +77,48 @@ const PassengerList = () => {
           </li>
         ))}
       </ul>
-      {isPopupOpen && <CreatePassenger onClose={handleClosePopup} />}
+
+      {/* Seçili Yolcunun Adresleri */}
       {selectedPassengerId && (
-        <AddressDetails
-          addresses={addresses.filter(
-            (address) => address.YolcuID === selectedPassengerId
-          )}
-          onClose={handleCloseAddress}
+        <div className="mt-6">
+          <h2 className="text-xl font-bold mb-2">
+            Yolcu ID: {selectedPassengerId} - Adres Listesi
+          </h2>
+          {filteredAddresses.length === 0 ? (
+  <p>Bu yolcuya kayıtlı adres yok.</p>
+) : (
+  <ul className="space-y-2">
+    {filteredAddresses.map((addr) => (
+      <li key={addr.YolcuAdresID} className="border p-2 rounded">
+        <p><strong>Adres Satırı 1:</strong> {addr.AdresSatiri1 || 'N/A'}</p>
+        <p><strong>Adres Satırı 2:</strong> {addr.AdresSatiri2 || 'N/A'}</p>
+
+        {/*
+          Artık "ID" yerine "Ad" döndüğümüz için:
+        */}
+        <p><strong>Şehir:</strong> {addr.SehirAdi || 'N/A'}</p>
+        <p><strong>Ülke:</strong> {addr.UlkeAdi || 'N/A'}</p>
+
+        <p><strong>Posta Kodu:</strong> {addr.PostaKodu || 'N/A'}</p>
+      </li>
+    ))}
+  </ul>
+)}
+
+        </div>
+      )}
+
+      {showPassengerForm && (
+        <CreatePassengerNew onClose={() => setShowPassengerForm(false)} />
+      )}
+      {showAddressForm && selectedPassengerId && (
+        <CreateAddressNew
+          onClose={() => setShowAddressForm(false)}
+          passengerId={selectedPassengerId}
         />
       )}
     </div>
   );
 };
 
-export default PassengerList;
+export default PassengerNew;

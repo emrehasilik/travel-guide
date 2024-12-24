@@ -7,24 +7,25 @@ const AddressDetails = ({ addresses, onClose }) => {
         <h3 className="text-lg font-bold mb-4">Adres Bilgileri</h3>
 
         {addresses.map((address, index) => (
-          <div key={index} className="mb-4">
-            <p>
-              <strong>Adres Satırı 1:</strong> {address.AdresSatiri1 || 'N/A'}
-            </p>
-            <p>
-              <strong>Adres Satırı 2:</strong> {address.AdresSatiri2 || 'N/A'}
-            </p>
-            <p>
-              <strong>Şehir ID:</strong> {address.SehirID || 'N/A'}
-            </p>
-            <p>
-              <strong>Posta Kodu:</strong> {address.PostaKodu || 'N/A'}
-            </p>
-            <p>
-              <strong>Ülke ID:</strong> {address.UlkeID || 'N/A'}
-            </p>
-          </div>
-        ))}
+  <div key={index} className="mb-4">
+    <p>
+      <strong>Adres Satırı 1:</strong> {address.AdresSatiri1 || 'N/A'}
+    </p>
+    <p>
+      <strong>Adres Satırı 2:</strong> {address.AdresSatiri2 || 'N/A'}
+    </p>
+    <p>
+      <strong>Şehir:</strong> {address.SehirAdi || 'N/A'}
+    </p>
+    <p>
+      <strong>Posta Kodu:</strong> {address.PostaKodu || 'N/A'}
+    </p>
+    <p>
+      <strong>Ülke:</strong> {address.UlkeAdi || 'N/A'}
+    </p>
+  </div>
+))}
+
 
         <div className="flex justify-end">
           <button
