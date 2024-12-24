@@ -10,6 +10,7 @@ const CreateGuide = ({ onClose }) => {
   const [gender, setGender] = useState('');
   const [experience, setExperience] = useState('');
   const [languages, setLanguages] = useState(['']);
+
   const { addGuide } = useGuideStore();
   const navigate = useNavigate();
 
@@ -24,9 +25,24 @@ const CreateGuide = ({ onClose }) => {
   };
 
   const handleSave = async () => {
+    // Zorunlu alan kontrolü (örnek olarak Ad ve Soyad)
     if (firstName.trim() === '' || lastName.trim() === '') return;
-    await addGuide(firstName, lastName, phone, email, gender, experience, languages);
-    onClose(); // Popup'ı kapat
+
+    // Tüm rehber verilerini tek obje şeklinde toplayın
+    const newGuide = {
+      Ad: firstName,
+      Soyad: lastName,
+      Telefon: phone,
+      Email: email,
+      Cinsiyet: gender,
+      DeneyimYili: experience,
+      Diller: languages,
+    };
+
+    // addGuide fonksiyonuna 'newGuide' objesini gönderiyoruz
+    await addGuide(newGuide);
+
+    onClose();          // Popup'ı kapat
     navigate('/rehberList'); // Rehber listesine yönlendir
   };
 

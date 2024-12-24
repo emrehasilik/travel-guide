@@ -4,7 +4,7 @@ import CreateGuide from '../components/CreateGuide';
 import EditGuide from '../components/EditGuide';
 
 const RehberList = () => {
-  const { guides, fetchGuides } = useGuideStore();
+  const { guides, fetchGuides, deleteGuide } = useGuideStore();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [selectedGuide, setSelectedGuide] = useState(null);
@@ -31,6 +31,14 @@ const RehberList = () => {
     setSelectedGuide(null);
   };
 
+  const handleDeleteGuide = async (guideId) => {
+    const confirmDelete = window.confirm('Bu rehberi silmek istediğinizden emin misiniz?');
+    if (confirmDelete) {
+      await deleteGuide(guideId); // Rehberi sil
+      alert('Rehber başarıyla silindi.');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4 bg-gray-100 rounded shadow">
       <h2 className="text-2xl font-bold mb-4">Rehber Listesi</h2>
@@ -53,6 +61,12 @@ const RehberList = () => {
                   onClick={() => handleOpenEditPopup(guide)}
                 >
                   Düzenle
+                </button>
+                <button
+                  className="bg-red-500 text-white p-2 rounded"
+                  onClick={() => handleDeleteGuide(guide.RehberID)}
+                >
+                  Sil
                 </button>
               </div>
             </div>

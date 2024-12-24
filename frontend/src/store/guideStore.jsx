@@ -18,7 +18,7 @@ const useGuideStore = create((set) => ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(guide),
+        body: JSON.stringify(guide), // <-- { Ad, Soyad, Telefon, ... } şeklinde
       });
       if (response.ok) {
         const newGuide = await response.json();
@@ -32,6 +32,7 @@ const useGuideStore = create((set) => ({
       console.error('Error adding guide:', error);
     }
   },
+  
   updateGuide: async (guide) => {
     try {
       const response = await fetch(`http://localhost:3000/api/guides/${guide.RehberID}`, {

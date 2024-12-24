@@ -16,7 +16,16 @@ const CreateTour = () => {
   const [description, setDescription] = useState('');
   const [isActive, setIsActive] = useState(true);
 
-  const { addTour, fetchRoutes, fetchGuides, fetchPlanes, routes, guides, planes } = useTourStore();
+  const {
+    createTour, // createTour fonksiyonunu destructure ettik
+    fetchRoutes,
+    fetchGuides,
+    fetchPlanes,
+    routes,
+    guides,
+    planes,
+  } = useTourStore();
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,6 +36,7 @@ const CreateTour = () => {
 
   const handleSave = () => {
     if (newTourName.trim() === '' || startDate === '' || endDate === '' || selectedRoute === '' || selectedGuide === '') return;
+
     const newTour = {
       TurAdi: newTourName,
       BaslangicTarihi: startDate,
@@ -41,8 +51,9 @@ const CreateTour = () => {
       Aciklama: description,
       AktifMi: isActive,
     };
-    addTour(newTour); // Turu kaydet
-    navigate('/tourList'); // Tur listesine yönlendir
+
+    createTour(newTour); // Yeni tur ekleme işlemi
+    navigate('/tourList'); // Tur listesi sayfasına yönlendirme
   };
 
   return (
