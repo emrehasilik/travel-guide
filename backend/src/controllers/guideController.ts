@@ -6,193 +6,193 @@ dotenv.config();
 
 const connectionString = `server=${process.env.DB_SERVER};Database=${process.env.DB_DATABASE};Trusted_Connection=Yes;Driver={SQL Server Native Client 11.0};`;
 
-export const getAllGuides = (req: Request, res: Response) => {
-    const query = "SELECT * FROM TurRehber.Rehber";
-    sql.query(connectionString, query, (err: any, rows: any) => {
-        if (err) {
-            console.error('Error during database query:', err);
-            res.status(500).send('Database error');
-        } else {
-            res.json(rows);
-        }
+function executeQuery(query: string, params: any[]): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+        sql.query(connectionString, query, params, (err: any, rows: any[] | undefined) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows || []);
+            }
+        });
     });
+}
+
+export const getAllGuides = async (req: Request, res: Response) => {
+    const query = `
+        SELECT
+            r.RehberID,
+            r.Ad,
+            r.Soyad,
+            r.Telefon,
+            r.Email,
+            r.Cinsiyet,
+            r.DeneyimYili,
+            r.CreateDate,
+            r.UpdateDate,
+            STRING_AGG(rd.Dil, ',') AS Diller
+        FROM TurRehber.Rehber r
+        LEFT JOIN TurRehber.Rehber_Dil rd ON r.RehberID = rd.RehberID
+        GROUP BY
+            r.RehberID,
+            r.Ad,
+            r.Soyad,
+            r.Telefon,
+            r.Email,
+            r.Cinsiyet,
+            r.DeneyimYili,
+            r.CreateDate,
+            r.UpdateDate;
+    `;
+
+    try {
+        const rows = await executeQuery(query, []);
+        const guides = rows.map(row => ({
+            ...row,
+            Diller: row.Diller ? row.Diller.split(',') : []
+        }));
+        res.json(guides);
+    } catch (err) {
+        console.error('Error during database query:', err);
+        res.status(500).send('Database error');
+    }
 };
 
-export const getGuideById = (req: Request, res: Response) => {
+export const getGuideById = async (req: Request, res: Response) => {
     const guideId = req.params.id;
-    const query = `SELECT * FROM TurRehber.Rehber WHERE Rehberd}`;
-    sql.query(connectionString, query, (err: any, rows: any) => {
-        if (err) {
-            console.error('Error during database query:', err);
-            res.status(500).send('Database error');
-        } else {
-            res.json(rows);
+    const query = `
+        SELECT
+            r.RehberID,
+            r.Ad,
+            r.Soyad,
+            r.Telefon,
+            r.Email,
+            r.Cinsiyet,
+            r.DeneyimYili,
+            r.CreateDate,
+            r.UpdateDate,
+            STRING_AGG(rd.Dil, ',') AS Diller
+        FROM TurRehber.Rehber r
+        LEFT JOIN TurRehber.Rehber_Dil rd ON r.RehberID = rd.RehberID
+        WHERE r.RehberID = ?
+        GROUP BY
+            r.RehberID,
+            r.Ad,
+            r.Soyad,
+            r.Telefon,
+            r.Email,
+            r.Cinsiyet,
+            r.DeneyimYili,
+            r.CreateDate,
+            r.UpdateDate;
+    `;
+
+    try {
+        const rows = await executeQuery(query, [guideId]);
+        if (rows.length === 0) {
+            res.status(404).send('Guide not found');
+            return;
         }
-    });
+        const guide = {
+            ...rows[0],
+            Diller: rows[0].Diller ? rows[0].Diller.split(',') : []
+        };
+        res.json(guide);
+    } catch (err) {
+        console.error('Error during database query:', err);
+        res.status(500).send('Database error');
+    }
 };
 
 export const createGuide = async (req: Request, res: Response): Promise<void> => {
-    console.log('CreateGuide endpoint called');
     const { Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili, Diller } = req.body;
 
-    console.log('Request body:', { Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili, Diller });
-
-    if (!Ad || !Soyad || !Telefon || !Email || !Cinsiyet || !DeneyimYili || !Diller) {
-        console.error('Validation failed: Missing fields');
-        res.status(400).send('All fields are required');
-        return;
-    }
-
-    const insertGuideQuery = `
+    const guideQuery = `
         INSERT INTO TurRehber.Rehber (Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili)
         OUTPUT INSERTED.RehberID
-        VALUES (?, ?, ?, ?, ?, ?);
+        VALUES (?, ?, ?, ?, ?, ?)
     `;
     const guideParams = [Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili];
 
     try {
-        sql.query(connectionString, insertGuideQuery, guideParams, (err: any, result: any) => {
-            if (err) {
-                console.error('Error during insert guide query:', err.message);
-                res.status(500).send('Database error');
-                return;
-            }
+        const result = await executeQuery(guideQuery, guideParams);
+        const newGuideId = result[0].RehberID;
 
-            console.log('Insert guide query results:', result);
+        if (Diller && Diller.length > 0) {
+            const languageQueries = Diller.map((dil: string) => {
+                const languageQuery = `
+                    INSERT INTO TurRehber.Rehber_Dil (RehberID, Dil)
+                    VALUES (?, ?)
+                `;
+                return executeQuery(languageQuery, [newGuideId, dil]);
+            });
 
-            const rehberID = result?.[0]?.RehberID;
-
-            if (!rehberID) {
-                console.error('Failed to retrieve inserted guide ID');
-                res.status(500).send('Failed to create guide');
-                return;
-            }
-
-            const insertLanguageQueries = Diller.map((dil: string) => ({
-                query: `INSERT INTO TurRehber.Rehber_Dil (RehberID, Dil) VALUES (?, ?);`,
-                params: [rehberID, dil]
-            }));
-
-            const executeLanguageQueries = async () => {
-                for (const { query, params } of insertLanguageQueries) {
-                    await new Promise<void>((resolve, reject) => {
-                        sql.query(connectionString, query, params, (err: any) => {
-                            if (err) {
-                                console.error('Error during insert language query:', err.message);
-                                reject(err);
-                            } else {
-                                resolve();
-                            }
-                        });
-                    });
-                }
-            };
-
-            executeLanguageQueries()
-                .then(() => {
-                    const newGuide = {
-                        RehberID: rehberID,
-                        Ad,
-                        Soyad,
-                        Telefon,
-                        Email,
-                        Cinsiyet,
-                        DeneyimYili,
-                        Diller,
-                    };
-
-                    console.log('New guide created:', newGuide);
-                    res.status(201).json(newGuide);
-                })
-                .catch((error) => {
-                    console.error('Error during language insertion:', error.message);
-                    res.status(500).send('Failed to insert guide languages');
-                });
-        });
-    } catch (error: any) {
-        console.error('Error in createGuide:', error.message);
-        res.status(500).send('An unexpected error occurred');
-    }
-};
-
-export const updateGuide = (req: Request, res: Response) => {
-  const guideId = req.params.id;
-  const { Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili, Diller } = req.body;
-  const query = `UPDATE TurRehber.Rehber SET Ad = ?, Soyad = ?, Telefon = ?, Email = ?, Cinsiyet = ?, DeneyimYili = ? WHERE RehberID = ?`;
-  const params = [Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili, guideId];
-
-  sql.query(connectionString, query, params, (err: any, result: any) => {
-    if (err) {
-      console.error('Error during database query:', err);
-      res.status(500).send('Database error');
-    } else {
-      const deleteLanguagesQuery = `DELETE FROM TurRehber.Rehber_Dil WHERE RehberID = ?`;
-      sql.query(connectionString, deleteLanguagesQuery, [guideId], (err: any) => {
-        if (err) {
-          console.error('Error during delete languages query:', err);
-          res.status(500).send('Database error');
-          return;
+            await Promise.all(languageQueries);
         }
 
-        const insertLanguageQueries = Diller.map((dil: string) => ({
-          query: `INSERT INTO TurRehber.Rehber_Dil (RehberID, Dil) VALUES (?, ?);`,
-          params: [guideId, dil]
-        }));
-
-        const executeLanguageQueries = async () => {
-          for (const { query, params } of insertLanguageQueries) {
-            await new Promise<void>((resolve, reject) => {
-              sql.query(connectionString, query, params, (err: any) => {
-                if (err) {
-                  console.error('Error during insert language query:', err.message);
-                  reject(err);
-                } else {
-                  resolve();
-                }
-              });
-            });
-          }
-        };
-
-        executeLanguageQueries()
-          .then(() => {
-            res.send('Guide successfully updated');
-          })
-          .catch((error) => {
-            console.error('Error during language insertion:', error.message);
-            res.status(500).send('Failed to insert guide languages');
-          });
-      });
+        res.status(201).json({ RehberID: newGuideId, Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili, Diller });
+    } catch (err) {
+        console.error('Error during database query:', err);
+        res.status(500).send('Database error');
     }
-  });
 };
 
-export const deleteGuide = (req: Request, res: Response) => {
+export const updateGuide = async (req: Request, res: Response): Promise<void> => {
     const guideId = req.params.id;
+    const { Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili, Diller } = req.body;
 
-    const deleteLanguagesQuery = `DELETE FROM TurRehber.Rehber_Dil WHERE RehberID = ?`;
-    const deleteGuideQuery = `DELETE FROM TurRehber.Rehber WHERE RehberID = ?`;
+    const updateGuideQuery = `
+        UPDATE TurRehber.Rehber
+        SET Ad = ?, Soyad = ?, Telefon = ?, Email = ?, Cinsiyet = ?, DeneyimYili = ?
+        WHERE RehberID = ?
+    `;
 
     try {
-        sql.query(connectionString, deleteLanguagesQuery, [guideId], (err: any, result: any) => {
-            if (err) {
-                console.error('Error during delete languages query:', err);
-                res.status(500).send('Database error');
-                return;
-            }
+        await executeQuery(updateGuideQuery, [Ad, Soyad, Telefon, Email, Cinsiyet, DeneyimYili, guideId]);
 
-            sql.query(connectionString, deleteGuideQuery, [guideId], (err: any, result: any) => {
-                if (err) {
-                    console.error('Error during delete guide query:', err);
-                    res.status(500).send('Database error');
-                    return;
-                }
+        const deleteLanguagesQuery = `
+            DELETE FROM TurRehber.Rehber_Dil
+            WHERE RehberID = ?
+        `;
+        await executeQuery(deleteLanguagesQuery, [guideId]);
 
-                res.send('Guide and associated languages successfully deleted');
+        if (Diller && Diller.length > 0) {
+            const languageQueries = Diller.map((dil: string) => {
+                const languageQuery = `
+                    INSERT INTO TurRehber.Rehber_Dil (RehberID, Dil)
+                    VALUES (?, ?)
+                `;
+                return executeQuery(languageQuery, [guideId, dil]);
             });
-        });
-    } catch (error: any) {
-        console.error('Error in deleteGuide:', error.message);
-        res.status(500).send('An unexpected error occurred');
+            await Promise.all(languageQueries);
+        }
+
+        res.status(200).send('Guide successfully updated');
+    } catch (err) {
+        console.error('Error during database query:', err);
+        res.status(500).send('Database error');
+    }
+};
+
+export const deleteGuide = async (req: Request, res: Response): Promise<void> => {
+    const guideId = req.params.id;
+
+    const deleteLanguagesQuery = `
+        DELETE FROM TurRehber.Rehber_Dil
+        WHERE RehberID = ?
+    `;
+
+    const deleteGuideQuery = `
+        DELETE FROM TurRehber.Rehber
+        WHERE RehberID = ?
+    `;
+
+    try {
+        await executeQuery(deleteLanguagesQuery, [guideId]);
+        await executeQuery(deleteGuideQuery, [guideId]);
+        res.send('Guide and associated languages successfully deleted');
+    } catch (err) {
+        console.error('Error during database query:', err);
+        res.status(500).send('Database error');
     }
 };

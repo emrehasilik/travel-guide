@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import useTourStore from '../store/tourStore';
 import { useNavigate } from 'react-router-dom';
-import EditTour from '../components/EditTour';  
+import EditTour from '../components/EditTour';
+import TourDetails from '../components/TourDetails';
 
 const TourList = () => {
   const { tours, fetchTours, deleteTour } = useTourStore();
   const navigate = useNavigate();
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
+  const [isDetailsPopupOpen, setIsDetailsPopupOpen] = useState(false);
   const [selectedTour, setSelectedTour] = useState(null);
 
   useEffect(() => {
@@ -27,8 +29,18 @@ const TourList = () => {
     setSelectedTour(null);
   };
 
+  const handleOpenDetailsPopup = (tour) => {
+    setSelectedTour(tour);
+    setIsDetailsPopupOpen(true);
+  };
+
+  const handleCloseDetailsPopup = () => {
+    setIsDetailsPopupOpen(false);
+    setSelectedTour(null);
+  };
+
   return (
-    <div className="max-w-2xl mx-auto p-4 bg-gray-100 rounded shadow">
+    <div className="max-w-7xl mx-auto p-4 bg-gray-100 rounded shadow">
       <h2 className="text-2xl font-bold mb-4">Tur Listesi</h2>
       <button
         onClick={handleAddTour}
@@ -36,12 +48,12 @@ const TourList = () => {
       >
         Tur Ekle
       </button>
-      <ul className="list-none p-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-16">
         {tours.map((tour) => (
-          <li key={tour.TurID} className="flex flex-col p-2 mb-2 bg-white border border-gray-300 rounded">
-            <div className="flex justify-between items-center">
+          <div key={tour.TurID} className="bg-white p-6 rounded-lg shadow-lg">
+            <div className="flex justify-between items-center mb-4">
               <div>
-                <span className="font-bold">{tour.TurAdi}</span>
+                <span className="font-bold text-xl">{tour.TurAdi}</span>
               </div>
               <div>
                 <button
@@ -51,6 +63,12 @@ const TourList = () => {
                   Düzenle
                 </button>
                 <button
+                  className="bg-green-500 text-white p-2 rounded mr-2"
+                  onClick={() => handleOpenDetailsPopup(tour)}
+                >
+                  Detaylar
+                </button>
+                <button
                   className="bg-red-500 text-white p-2 rounded"
                   onClick={() => deleteTour(tour.TurID)}
                 >
@@ -58,17 +76,15 @@ const TourList = () => {
                 </button>
               </div>
             </div>
-            <div className="mt-2">
+            <div className="mt-8">
               <p><strong>Başlangıç Tarihi:</strong> {tour.BaslangicTarihi}</p>
-              <p><strong>Bitiş Tarihi:</strong> {tour.BitisTarihi}</p>
-              <p><strong>Rota Adı:</strong> {tour.RotaAdi}</p>
-              <p><strong>Rehber Adı:</strong> {tour.RehberAdi}</p>
-              <p><strong>Uçak Bilgisi:</strong> {tour.UcakBilgisi}</p>
+          
             </div>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
       {isEditPopupOpen && <EditTour tour={selectedTour} onClose={handleCloseEditPopup} />}
+      {isDetailsPopupOpen && <TourDetails tour={selectedTour} onClose={handleCloseDetailsPopup} />}
     </div>
   );
 };

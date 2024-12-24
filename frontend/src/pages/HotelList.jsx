@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import useHotelStore from '../store/hotelStore';
+import useCityStore from '../store/cityStore';
 import CreateHotel from '../components/CreateHotel';
 import EditHotel from '../components/EditHotel';
 
 const HotelList = () => {
   const { hotels, fetchHotels, deleteHotel } = useHotelStore();
+  const { cities, fetchCities } = useCityStore();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState(null);
 
   useEffect(() => {
     fetchHotels();
-  }, [fetchHotels]);
+    fetchCities();
+  }, [fetchHotels, fetchCities]);
 
   const handleOpenPopup = () => {
     setIsPopupOpen(true);
@@ -29,6 +32,11 @@ const HotelList = () => {
   const handleCloseEditPopup = () => {
     setIsEditPopupOpen(false);
     setSelectedHotel(null);
+  };
+
+  const getCityName = (cityId) => {
+    const city = cities.find((city) => city.SehirID === cityId);
+    return city ? city.SehirAdi : 'Bilinmiyor';
   };
 
   return (
@@ -63,7 +71,7 @@ const HotelList = () => {
               </div>
             </div>
             <div className="mt-2">
-              <p><strong>Şehir ID:</strong> {hotel.SehirID}</p>
+              <p><strong>Şehir:</strong> {getCityName(hotel.SehirID)}</p>
               <p><strong>Yıldız Sayısı:</strong> {hotel.YildizSayisi}</p>
               <p><strong>Açıklama:</strong> {hotel.Aciklama}</p>
             </div>

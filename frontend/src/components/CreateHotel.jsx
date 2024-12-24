@@ -17,11 +17,20 @@ const CreateHotel = ({ onClose }) => {
   }, [fetchCities]);
 
   const handleSave = async () => {
-    if (hotelName.trim() === '' || cityId.trim() === '') return; // Doğrulama
-    await addHotel(hotelName, cityId, starRating, description); // Otel ekle
-    onClose(); // Popup'ı kapat
-  };
+    if (hotelName.trim() === '' || cityId.trim() === '') return; // Form Validasyonu
   
+    // Burada tek bir obje oluşturuyoruz:
+    const newHotel = {
+      OtelAdi: hotelName,
+      SehirID: parseInt(cityId, 10),
+      YildizSayisi: parseInt(starRating, 10),
+      Aciklama: description
+    };
+  
+    // addHotel fonksiyonuna bu objeyi gönderiyoruz:
+    await addHotel(newHotel); 
+    onClose(); 
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">

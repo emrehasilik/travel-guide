@@ -4,7 +4,7 @@ import CreateGuide from '../components/CreateGuide';
 import EditGuide from '../components/EditGuide';
 
 const RehberList = () => {
-  const { guides, fetchGuides, deleteGuide } = useGuideStore();
+  const { guides, fetchGuides } = useGuideStore();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [selectedGuide, setSelectedGuide] = useState(null);
@@ -32,7 +32,7 @@ const RehberList = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 bg-gray-100 rounded shadow">
+    <div className="max-w-7xl mx-auto p-4 bg-gray-100 rounded shadow">
       <h2 className="text-2xl font-bold mb-4">Rehber Listesi</h2>
       <button
         onClick={handleOpenPopup}
@@ -54,12 +54,6 @@ const RehberList = () => {
                 >
                   Düzenle
                 </button>
-                <button
-                  className="bg-red-500 text-white p-2 rounded"
-                  onClick={() => deleteGuide(guide.RehberID)}
-                >
-                  Sil
-                </button>
               </div>
             </div>
             <div className="mt-2">
@@ -67,7 +61,14 @@ const RehberList = () => {
               <p><strong>Email:</strong> {guide.Email}</p>
               <p><strong>Cinsiyet:</strong> {guide.Cinsiyet}</p>
               <p><strong>Deneyim Yılı:</strong> {guide.DeneyimYili}</p>
-              <p><strong>Diller:</strong> {guide.Diller ? guide.Diller: 'Bilgi yok'}</p>
+              <p><strong>Diller:</strong></p>
+              {Array.isArray(guide.Diller) ? (
+                guide.Diller.map((dil, index) => (
+                  <p key={index} className="ml-4">- {dil}</p>
+                ))
+              ) : (
+                <p>Bilgi yok</p>
+              )}
             </div>
           </li>
         ))}
